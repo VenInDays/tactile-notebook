@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Earthy Tactile Palette -->
+    <color name="parchment">#F2E8D5</color>
+    <color name="parchment_dark">#E4D5BC</color>
+    <color name="slate_deep">#3A3F47</color>
+    <color name="slate_medium">#5A6068</color>
+    <color name="clay_warm">#B89068</color>
+    <color name="clay_dark">#8B6E4E</color>
+    <color name="moss_muted">#7A8B6F</color>
+    <color name="rust_accent">#C4735E</color>
+    <color name="cream_light">#F7F0E6</color>
+    <color name="ink_brown">#4A3F35</color>
+    <color name="sandstone">#D4C4A8</color>
+    <color name="charcoal_soft">#2D3136</color>
+</resources>
