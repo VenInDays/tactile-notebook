@@ -4,15 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.drawText
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -20,7 +19,6 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tactile.notebook.data.entity.NoteEntity
 import com.tactile.notebook.ui.components.DialTool
 import com.tactile.notebook.ui.components.FloatingAnchor
 import com.tactile.notebook.ui.components.KineticDial
@@ -40,7 +38,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun TactileNotebookApp(
     viewModel: NotebookViewModel = viewModel()
@@ -55,7 +52,6 @@ fun TactileNotebookApp(
     ) {
         // Background canvas texture
         Canvas(modifier = Modifier.fillMaxSize()) {
-            // Subtle dot grid for spatial reference
             for (x in 0..size.width.toInt() step 40) {
                 for (y in 0..size.height.toInt() step 40) {
                     drawCircle(
@@ -70,7 +66,6 @@ fun TactileNotebookApp(
         // Main content area
         when {
             state.isEditing && state.selectedNoteId != null -> {
-                // Note editor mode
                 val selectedNote = state.notes.find { it.id == state.selectedNoteId }
                 NoteEditorScreen(
                     note = selectedNote,
@@ -79,7 +74,6 @@ fun TactileNotebookApp(
                 )
             }
             else -> {
-                // Canvas mode — overlap cards view
                 OverlapCanvas(
                     modifier = Modifier.fillMaxSize(),
                     notes = state.notes,
@@ -99,10 +93,10 @@ fun TactileNotebookApp(
                 activeNote = activeNote,
                 onAction = { index ->
                     when (index) {
-                        0 -> { /* Edit */ viewModel.selectNote(activeNote?.id ?: return@FloatingAnchor) }
-                        1 -> { /* Pin */ activeNote?.let { viewModel.togglePin(it) } }
-                        2 -> { /* Move — future drag feature */ }
-                        3 -> { /* Delete */ activeNote?.let { viewModel.deleteNote(it) } }
+                        0 -> { viewModel.selectNote(activeNote?.id ?: return@FloatingAnchor) }
+                        1 -> { activeNote?.let { viewModel.togglePin(it) } }
+                        2 -> { /* Move — future */ }
+                        3 -> { activeNote?.let { viewModel.deleteNote(it) } }
                     }
                 }
             )
@@ -134,13 +128,11 @@ fun TactileNotebookApp(
                 .height(48.dp)
                 .align(Alignment.TopStart)
         ) {
-            // Title background
             drawRect(
                 color = SlateDeep.copy(alpha = 0.85f),
                 size = Size(size.width, 48.dp.toPx())
             )
 
-            // Title text
             val titleResult = textMeasurer.measure(
                 text = AnnotatedString("TACTILE NOTEBOOK"),
                 style = TextStyle(
@@ -155,7 +147,6 @@ fun TactileNotebookApp(
                 topLeft = Offset(20.dp.toPx(), (48.dp.toPx() - titleResult.size.height) / 2f)
             )
 
-            // Tool indicator
             val toolLabel = state.currentTool.label.uppercase()
             val toolResult = textMeasurer.measure(
                 text = AnnotatedString(toolLabel),
@@ -174,7 +165,6 @@ fun TactileNotebookApp(
                 )
             )
 
-            // Bottom accent line
             drawLine(
                 color = ClayWarm,
                 start = Offset.Zero,

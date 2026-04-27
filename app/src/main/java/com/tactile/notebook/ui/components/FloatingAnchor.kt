@@ -6,13 +6,13 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawText
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -26,7 +26,6 @@ import com.tactile.notebook.ui.theme.*
 /**
  * "The Floating Anchor" — A floating element that sits 20% over the edge
  * of the active note card, acting as a dynamic shortcut bar.
- * Follows the user's focus (selected note).
  */
 data class AnchorAction(
     val label: String,
@@ -44,15 +43,12 @@ fun FloatingAnchor(
 ) {
     val textMeasurer = rememberTextMeasurer()
 
-    // Animated position
     var anchorOffsetX by remember { mutableFloatStateOf(0f) }
     var anchorOffsetY by remember { mutableFloatStateOf(0f) }
 
-    // Smooth position animation
     val animatedOffsetX = remember { Animatable(0f) }
     val animatedOffsetY = remember { Animatable(0f) }
 
-    // Pulse animation for active state
     val pulseAlpha = rememberInfiniteTransition(label = "anchor_pulse")
     val pulse by pulseAlpha.animateFloat(
         initialValue = 0.6f,
@@ -62,9 +58,6 @@ fun FloatingAnchor(
             repeatMode = RepeatMode.Reverse
         )
     )
-
-    // Hover scale animation
-    val scaleAnim = remember { Animatable(1f) }
 
     LaunchedEffect(anchorOffsetX) {
         animatedOffsetX.animateTo(
@@ -96,10 +89,9 @@ fun FloatingAnchor(
                 .fillMaxSize()
                 .pointerInput(actions.size) {
                     detectTapGestures { offset ->
-                        // Determine which action was tapped
-                        val anchorWidth = (actions.size * 52.dp).toPx()
-                        val anchorHeight = 44.dp.toPx()
-                        val anchorX = size.width - anchorWidth * 0.8f + animatedOffsetX.value
+                        val anchorWidthPx = (actions.size * 52.dp).toPx()
+                        val anchorHeightPx = 44.dp.toPx()
+                        val anchorX = size.width - anchorWidthPx * 0.8f + animatedOffsetX.value
                         val anchorY = size.height * 0.55f + animatedOffsetY.value
 
                         val tapIndex = ((offset.x - anchorX) / 52.dp.toPx()).toInt()
@@ -111,17 +103,16 @@ fun FloatingAnchor(
         ) {
             if (activeNote == null) return@Canvas
 
-            val anchorWidth = (actions.size * 52.dp).toPx()
-            val anchorHeight = 44.dp.toPx()
-            // Position: 20% overlaps the right edge of the card area
-            val anchorX = size.width - anchorWidth * 0.8f + animatedOffsetX.value
+            val anchorWidthPx = (actions.size * 52.dp).toPx()
+            val anchorHeightPx = 44.dp.toPx()
+            val anchorX = size.width - anchorWidthPx * 0.8f + animatedOffsetX.value
             val anchorY = size.height * 0.55f + animatedOffsetY.value
 
             // Shadow
             drawRoundRect(
                 color = CharcoalSoft.copy(alpha = 0.15f),
                 topLeft = Offset(anchorX + 2.dp.toPx(), anchorY + 4.dp.toPx()),
-                size = Size(anchorWidth, anchorHeight),
+                size = Size(anchorWidthPx, anchorHeightPx),
                 cornerRadius = CornerRadius(12.dp.toPx())
             )
 
@@ -134,7 +125,7 @@ fun FloatingAnchor(
                     )
                 ),
                 topLeft = Offset(anchorX, anchorY),
-                size = Size(anchorWidth, anchorHeight),
+                size = Size(anchorWidthPx, anchorHeightPx),
                 cornerRadius = CornerRadius(12.dp.toPx())
             )
 
@@ -142,30 +133,29 @@ fun FloatingAnchor(
             drawRoundRect(
                 color = ClayWarm.copy(alpha = pulse * 0.6f),
                 topLeft = Offset(anchorX, anchorY),
-                size = Size(anchorWidth, anchorHeight),
+                size = Size(anchorWidthPx, anchorHeightPx),
                 cornerRadius = CornerRadius(12.dp.toPx()),
                 style = Stroke(width = 1.5.dp.toPx())
             )
 
-            // Left edge tab (the "anchor" that grips the card)
+            // Left edge tab
             drawRoundRect(
                 color = RustAccent.copy(alpha = 0.9f),
                 topLeft = Offset(anchorX - 6.dp.toPx(), anchorY + 8.dp.toPx()),
-                size = Size(6.dp.toPx(), anchorHeight - 16.dp.toPx()),
+                size = Size(6.dp.toPx(), anchorHeightPx - 16.dp.toPx()),
                 cornerRadius = CornerRadius(3.dp.toPx())
             )
 
             // Action icons
             actions.forEachIndexed { index, action ->
                 val iconX = anchorX + 12.dp.toPx() + index * 52.dp.toPx()
-                val iconY = anchorY + (anchorHeight - 20.sp.toPx()) / 2f
+                val iconY = anchorY + (anchorHeightPx - 20.sp.toPx()) / 2f
 
-                // Separator line between actions
                 if (index > 0) {
                     drawLine(
                         color = ClayWarm.copy(alpha = 0.3f),
                         start = Offset(iconX - 8.dp.toPx(), anchorY + 10.dp.toPx()),
-                        end = Offset(iconX - 8.dp.toPx(), anchorY + anchorHeight - 10.dp.toPx()),
+                        end = Offset(iconX - 8.dp.toPx(), anchorY + anchorHeightPx - 10.dp.toPx()),
                         strokeWidth = 0.5.dp.toPx()
                     )
                 }
@@ -186,7 +176,6 @@ fun FloatingAnchor(
                     )
                 )
 
-                // Label below (small)
                 val labelResult = textMeasurer.measure(
                     text = AnnotatedString(action.label),
                     style = TextStyle(
@@ -199,7 +188,7 @@ fun FloatingAnchor(
                     textLayoutResult = labelResult,
                     topLeft = Offset(
                         iconX + (40.dp.toPx() - labelResult.size.width) / 2f,
-                        anchorY + anchorHeight - 14.dp.toPx()
+                        anchorY + anchorHeightPx - 14.dp.toPx()
                     )
                 )
             }

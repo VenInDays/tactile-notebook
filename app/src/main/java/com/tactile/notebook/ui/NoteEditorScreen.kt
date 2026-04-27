@@ -1,18 +1,13 @@
 package com.tactile.notebook.ui
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.brush.Brush
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -23,7 +18,6 @@ import com.tactile.notebook.ui.theme.*
 
 /**
  * Note Editor Screen — Organic brutalist style text editor.
- * No standard text fields. Raw, tactile editing experience.
  */
 @Composable
 fun NoteEditorScreen(
@@ -45,7 +39,6 @@ fun NoteEditorScreen(
     ) {
         // Background texture
         Canvas(modifier = Modifier.fillMaxSize()) {
-            // Paper grain texture
             for (i in 0..20) {
                 val y = i * size.height / 20
                 drawLine(
@@ -55,7 +48,6 @@ fun NoteEditorScreen(
                     strokeWidth = 0.5.dp.toPx()
                 )
             }
-            // Margin line
             drawLine(
                 color = ClayWarm.copy(alpha = 0.2f),
                 start = Offset(60.dp.toPx(), 0f),
@@ -68,9 +60,8 @@ fun NoteEditorScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp, vertical = 16.dp)
-                .padding(start = 44.dp) // After margin line
+                .padding(start = 44.dp)
         ) {
-            // Back indicator — tactile "fold" mark
             Canvas(modifier = Modifier.size(32.dp, 32.dp)) {
                 drawLine(
                     color = ClayWarm,
@@ -88,7 +79,6 @@ fun NoteEditorScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Title field
             BasicTextField(
                 value = titleState,
                 onValueChange = { newValue ->
@@ -106,14 +96,12 @@ fun NoteEditorScreen(
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { innerTextField ->
                     if (titleState.text.isEmpty()) {
-                        androidx.compose.foundation.layout.Box {
-                            androidx.compose.material3.Text(
-                                text = "Title",
-                                color = SlateMedium.copy(alpha = 0.4f),
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        Text(
+                            text = "Title",
+                            color = SlateMedium.copy(alpha = 0.4f),
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     innerTextField()
                 }
@@ -121,7 +109,6 @@ fun NoteEditorScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Divider line
             Canvas(modifier = Modifier
                 .fillMaxWidth()
                 .height(2.dp)) {
@@ -135,7 +122,6 @@ fun NoteEditorScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Content field
             BasicTextField(
                 value = contentState,
                 onValueChange = { newValue ->
@@ -155,13 +141,11 @@ fun NoteEditorScreen(
                     .weight(1f),
                 decorationBox = { innerTextField ->
                     if (contentState.text.isEmpty()) {
-                        androidx.compose.foundation.layout.Box {
-                            androidx.compose.material3.Text(
-                                text = "Write something...",
-                                color = SlateMedium.copy(alpha = 0.3f),
-                                fontSize = 15.sp
-                            )
-                        }
+                        Text(
+                            text = "Write something...",
+                            color = SlateMedium.copy(alpha = 0.3f),
+                            fontSize = 15.sp
+                        )
                     }
                     innerTextField()
                 }
