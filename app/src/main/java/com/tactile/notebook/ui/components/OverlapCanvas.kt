@@ -245,17 +245,14 @@ private fun NoteCard(
                         color = RustAccent,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier.align(Alignment.Center)
+                    )
                 )
             }
 
             // Pin indicator
             if (note.pinned) {
                 Canvas(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .size(8.dp)
+                    modifier = Modifier.size(8.dp)
                 ) {
                     drawCircle(color = RustAccent, radius = 4.dp.toPx())
                 }
