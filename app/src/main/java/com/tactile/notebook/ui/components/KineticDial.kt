@@ -6,10 +6,8 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -89,7 +87,7 @@ fun KineticDial(
                         dragStartAngle = currentAngle
 
                         // Snap to nearest tool based on accumulated rotation
-                        val snappedIndex = ((accumulatedAngle / 90f).roundToInt())
+                        var snappedIndex = (accumulatedAngle / 90f).roundToInt()
                         snappedIndex = snappedIndex.coerceIn(0, DialTool.entries.size - 1)
                         val tool = DialTool.entries[snappedIndex]
                         if (tool != currentTool) {
@@ -98,8 +96,8 @@ fun KineticDial(
                     },
                     onDragEnd = {
                         // Snap to nearest tool
-                        val snappedIndex = ((accumulatedAngle / 90f).roundToInt())
-                            .coerceIn(0, DialTool.entries.size - 1)
+                        var snappedIndex = (accumulatedAngle / 90f).roundToInt()
+                        snappedIndex = snappedIndex.coerceIn(0, DialTool.entries.size - 1)
                         val tool = DialTool.entries[snappedIndex]
                         onToolSelected(tool)
                         targetRotation = snappedIndex * 90f
@@ -187,7 +185,7 @@ fun KineticDial(
                     val isSelected = tool == currentTool
 
                     // Segment divider lines
-                    val dividerAngle = Math.toRadians((segmentAngle).toDouble())
+                    val dividerAngle = Math.toRadians(segmentAngle.toDouble())
                     val endX = centerX + radiusPx * cos(dividerAngle).toFloat()
                     val endY = centerY + radiusPx * sin(dividerAngle).toFloat()
                     drawLine(
@@ -209,19 +207,7 @@ fun KineticDial(
                         center = Offset(dotX, dotY)
                     )
 
-                    // Tool label
-                    val labelAngle = Math.toRadians((segmentAngle + 45.0))
-                    val labelRadius = radiusPx * 0.78f
-                    val labelX = centerX + labelRadius * cos(labelAngle).toFloat()
-                    val labelY = centerY + labelRadius * sin(labelAngle).toFloat()
-
-                    val textStyle = TextStyle(
-                        color = if (isSelected) RustAccent else InkBrown,
-                        fontSize = 12.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                    )
-
-                    // Draw symbol
+                    // Tool symbol
                     val symbolStyle = TextStyle(
                         color = if (isSelected) RustAccent else SlateDeep,
                         fontSize = 24.sp,
@@ -234,12 +220,17 @@ fun KineticDial(
                     drawText(
                         textLayoutResult = symbolResult,
                         topLeft = Offset(
-                            labelX - symbolResult.size.width / 2f,
+                            dotX - symbolResult.size.width / 2f,
                             dotY - symbolResult.size.height / 2f - 16.dp.toPx()
                         )
                     )
 
-                    // Draw label text
+                    // Tool label text
+                    val textStyle = TextStyle(
+                        color = if (isSelected) RustAccent else InkBrown,
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
                     val textResult = textMeasurer.measure(
                         text = AnnotatedString(tool.label),
                         style = textStyle
@@ -247,7 +238,7 @@ fun KineticDial(
                     drawText(
                         textLayoutResult = textResult,
                         topLeft = Offset(
-                            labelX - textResult.size.width / 2f,
+                            dotX - textResult.size.width / 2f,
                             dotY + 16.dp.toPx()
                         )
                     )
@@ -273,7 +264,7 @@ fun KineticDial(
             }
 
             // Current tool indicator (fixed, doesn't rotate)
-            val indicatorAngle = Math.toRadians(-135.0) // Bottom-left of visible quadrant
+            val indicatorAngle = Math.toRadians(-135.0)
             val indicatorRadius = radiusPx * 0.35f
             val indicatorX = centerX + indicatorRadius * cos(indicatorAngle).toFloat()
             val indicatorY = centerY + indicatorRadius * sin(indicatorAngle).toFloat()
