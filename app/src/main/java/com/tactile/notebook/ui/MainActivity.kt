@@ -6,12 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.drawText
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -43,7 +44,6 @@ fun TactileNotebookApp(
     viewModel: NotebookViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val textMeasurer = rememberTextMeasurer()
 
     Box(
         modifier = Modifier
@@ -121,78 +121,65 @@ fun TactileNotebookApp(
             )
         }
 
-        // Status bar area — app title
-        Canvas(
+        // Status bar area — app title using Compose Text instead of Canvas
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
                 .align(Alignment.TopStart)
         ) {
-            drawRect(
-                color = SlateDeep.copy(alpha = 0.85f),
-                size = Size(size.width, 48.dp.toPx())
-            )
-
-            val titleResult = textMeasurer.measure(
-                text = AnnotatedString("TACTILE NOTEBOOK"),
-                style = TextStyle(
-                    color = Parchment,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawRect(
+                    color = SlateDeep.copy(alpha = 0.85f),
+                    size = Size(size.width, size.height)
                 )
-            )
-            drawText(
-                textLayoutResult = titleResult,
-                topLeft = Offset(20.dp.toPx(), (48.dp.toPx() - titleResult.size.height) / 2f)
-            )
-
-            val toolLabel = state.currentTool.label.uppercase()
-            val toolResult = textMeasurer.measure(
-                text = AnnotatedString(toolLabel),
-                style = TextStyle(
-                    color = RustAccent,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 1.sp
+                drawLine(
+                    color = ClayWarm,
+                    start = Offset.Zero,
+                    end = Offset(size.width, 0f),
+                    strokeWidth = 2.dp.toPx()
                 )
-            )
-            drawText(
-                textLayoutResult = toolResult,
-                topLeft = Offset(
-                    size.width - 20.dp.toPx() - toolResult.size.width,
-                    (48.dp.toPx() - toolResult.size.height) / 2f
-                )
-            )
+            }
 
-            drawLine(
-                color = ClayWarm,
-                start = Offset.Zero,
-                end = Offset(size.width, 0f),
-                strokeWidth = 2.dp.toPx()
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "TACTILE NOTEBOOK",
+                    style = TextStyle(
+                        color = Parchment,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    )
+                )
+                Text(
+                    text = state.currentTool.label.uppercase(),
+                    style = TextStyle(
+                        color = RustAccent,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp
+                    )
+                )
+            }
         }
 
         // Note count indicator (bottom-left)
-        Canvas(
+        Text(
+            text = "${state.notes.size} notes",
+            style = TextStyle(
+                color = SlateMedium.copy(alpha = 0.6f),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Normal
+            ),
             modifier = Modifier
-                .size(80.dp, 32.dp)
                 .align(Alignment.BottomStart)
-                .padding(bottom = 8.dp, start = 8.dp)
-        ) {
-            val countText = "${state.notes.size} notes"
-            val countResult = textMeasurer.measure(
-                text = AnnotatedString(countText),
-                style = TextStyle(
-                    color = SlateMedium.copy(alpha = 0.6f),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Normal
-                )
-            )
-            drawText(
-                textLayoutResult = countResult,
-                topLeft = Offset(8.dp.toPx(), (size.height - countResult.size.height) / 2f)
-            )
-        }
+                .padding(bottom = 16.dp, start = 16.dp)
+        )
     }
 }

@@ -5,19 +5,21 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawText
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tactile.notebook.data.entity.NoteEntity
@@ -41,8 +43,6 @@ fun FloatingAnchor(
     onAction: (Int) -> Unit = {},
     onAnchorDrag: (Offset) -> Unit = {}
 ) {
-    val textMeasurer = rememberTextMeasurer()
-
     var anchorOffsetX by remember { mutableFloatStateOf(0f) }
     var anchorOffsetY by remember { mutableFloatStateOf(0f) }
 
@@ -72,6 +72,8 @@ fun FloatingAnchor(
         )
     }
 
+    if (activeNote == null) return
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -84,113 +86,66 @@ fun FloatingAnchor(
                 }
             }
     ) {
-        Canvas(
+        // Anchor bar — using Compose layout instead of Canvas for text
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(actions.size) {
-                    detectTapGestures { offset ->
-                        val anchorWidthPx = (actions.size * 52.dp).toPx()
-                        val anchorHeightPx = 44.dp.toPx()
-                        val anchorX = size.width - anchorWidthPx * 0.8f + animatedOffsetX.value
-                        val anchorY = size.height * 0.55f + animatedOffsetY.value
+                .align(Alignment.CenterEnd)
+                .offset(x = animatedOffsetX.value.dp, y = animatedOffsetY.value.dp)
+                .padding(end = 8.dp)
+                .background(
+                    color = SlateDeep.copy(alpha = 0.92f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left edge tab indicator
+            Canvas(modifier = Modifier.size(6.dp, 28.dp)) {
+                drawRoundRect(
+                    color = RustAccent,
+                    cornerRadius = CornerRadius(3.dp.toPx())
+                )
+            }
 
-                        val tapIndex = ((offset.x - anchorX) / 52.dp.toPx()).toInt()
-                        if (tapIndex in actions.indices) {
-                            onAction(tapIndex)
-                        }
+            Spacer(modifier = Modifier.width(4.dp))
+
+            actions.forEachIndexed { index, action ->
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .clickable { onAction(index) }
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = action.symbol,
+                        style = TextStyle(
+                            color = CreamLight,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                    Text(
+                        text = action.label,
+                        style = TextStyle(
+                            color = Sandstone.copy(alpha = 0.7f),
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Normal
+                        )
+                    )
+                }
+
+                if (index < actions.size - 1) {
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Canvas(modifier = Modifier.size(1.dp, 24.dp)) {
+                        drawLine(
+                            color = ClayWarm.copy(alpha = 0.3f),
+                            start = Offset(0f, 0f),
+                            end = Offset(0f, size.height),
+                            strokeWidth = 1.dp.toPx()
+                        )
                     }
                 }
-        ) {
-            if (activeNote == null) return@Canvas
-
-            val anchorWidthPx = (actions.size * 52.dp).toPx()
-            val anchorHeightPx = 44.dp.toPx()
-            val anchorX = size.width - anchorWidthPx * 0.8f + animatedOffsetX.value
-            val anchorY = size.height * 0.55f + animatedOffsetY.value
-
-            // Shadow
-            drawRoundRect(
-                color = CharcoalSoft.copy(alpha = 0.15f),
-                topLeft = Offset(anchorX + 2.dp.toPx(), anchorY + 4.dp.toPx()),
-                size = Size(anchorWidthPx, anchorHeightPx),
-                cornerRadius = CornerRadius(12.dp.toPx())
-            )
-
-            // Main body
-            drawRoundRect(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        SlateDeep.copy(alpha = 0.92f),
-                        CharcoalSoft.copy(alpha = 0.88f)
-                    )
-                ),
-                topLeft = Offset(anchorX, anchorY),
-                size = Size(anchorWidthPx, anchorHeightPx),
-                cornerRadius = CornerRadius(12.dp.toPx())
-            )
-
-            // Border
-            drawRoundRect(
-                color = ClayWarm.copy(alpha = pulse * 0.6f),
-                topLeft = Offset(anchorX, anchorY),
-                size = Size(anchorWidthPx, anchorHeightPx),
-                cornerRadius = CornerRadius(12.dp.toPx()),
-                style = Stroke(width = 1.5.dp.toPx())
-            )
-
-            // Left edge tab
-            drawRoundRect(
-                color = RustAccent.copy(alpha = 0.9f),
-                topLeft = Offset(anchorX - 6.dp.toPx(), anchorY + 8.dp.toPx()),
-                size = Size(6.dp.toPx(), anchorHeightPx - 16.dp.toPx()),
-                cornerRadius = CornerRadius(3.dp.toPx())
-            )
-
-            // Action icons
-            actions.forEachIndexed { index, action ->
-                val iconX = anchorX + 12.dp.toPx() + index * 52.dp.toPx()
-                val iconY = anchorY + (anchorHeightPx - 20.sp.toPx()) / 2f
-
-                if (index > 0) {
-                    drawLine(
-                        color = ClayWarm.copy(alpha = 0.3f),
-                        start = Offset(iconX - 8.dp.toPx(), anchorY + 10.dp.toPx()),
-                        end = Offset(iconX - 8.dp.toPx(), anchorY + anchorHeightPx - 10.dp.toPx()),
-                        strokeWidth = 0.5.dp.toPx()
-                    )
-                }
-
-                val symbolResult = textMeasurer.measure(
-                    text = AnnotatedString(action.symbol),
-                    style = TextStyle(
-                        color = CreamLight,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                )
-                drawText(
-                    textLayoutResult = symbolResult,
-                    topLeft = Offset(
-                        iconX + (40.dp.toPx() - symbolResult.size.width) / 2f,
-                        iconY
-                    )
-                )
-
-                val labelResult = textMeasurer.measure(
-                    text = AnnotatedString(action.label),
-                    style = TextStyle(
-                        color = Sandstone.copy(alpha = 0.7f),
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Normal
-                    )
-                )
-                drawText(
-                    textLayoutResult = labelResult,
-                    topLeft = Offset(
-                        iconX + (40.dp.toPx() - labelResult.size.width) / 2f,
-                        anchorY + anchorHeightPx - 14.dp.toPx()
-                    )
-                )
             }
         }
     }
